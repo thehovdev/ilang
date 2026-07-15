@@ -12,7 +12,7 @@ Full reference: [Documentation.md](./Documentation.md).
 ## Requirements
 
 - Node.js (with `npm`)
-- Cursor (or any AI chat)
+- AI Code Editor (or any AI chat)
 
 ---
 
@@ -178,7 +178,7 @@ Only the output of `npm run prompt -- --stdout` (or the `prompt:` block from the
 Yes. Set `target` under `lang:`, and use matching paths/extensions in `output:` (`.rs`, `.py`, …).
 
 **Syntax highlighting**  
-Cursor/VS Code may suggest the local `extensions/ilang` extension. Install it if prompted.
+Code Editor may suggest the local `extensions/ilang` extension. Install it if prompted.
 
 ---
 
