@@ -3,7 +3,7 @@
 
 ILang helps you give AI a **structured** task and get back **mostly code** (less chatter → fewer expensive output tokens).
 
-You write plain text in a `.ilang` file → ILang builds a compressed `prompt:` → you paste that into Cursor (or any AI chat).
+You write plain text in a `.ilang` file → ILang builds a compressed `prompt:` → you paste that into Agent (or any AI chat).
 
 Full reference: [Documentation.md](./Documentation.md).
 
