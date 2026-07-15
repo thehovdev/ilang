@@ -1,4 +1,5 @@
 # ILang V2
+<img width="1590" height="1268" alt="Screenshot From 2026-07-15 15-30-18" src="https://github.com/user-attachments/assets/a1811b96-7af9-4a63-9a5a-93b01af3632b" />
 
 ILang helps you give AI a **structured** task and get back **mostly code** (less chatter → fewer expensive output tokens).
 
