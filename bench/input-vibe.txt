@@ -1,0 +1,54 @@
+I need help building a small TypeScript project.
+
+TypeScript Node project for a file-backed key value store CLI
+  The store persists records to a JSON file on disk
+  The CLI reads arguments and mutates or queries the store
+
+dir = external/kv
+  entry = external/kv/cli.ts
+  typesFile = external/kv/types.ts
+  storeFile = external/kv/store.ts
+  errorsFile = external/kv/errors.ts
+  indexFile = external/kv/index.ts
+  dataFile = external/kv/data.json
+  commands = get set delete list
+
+Create a TypeScript key value store with file persistence and a CLI
+  Implement get set delete list against a JSON store file
+  Types live in types file and cover KvRecord StoreData CliCommand
+  Store module loads and saves the JSON store file, creates it when missing
+  Store module exposes get set delete list using string keys and string values
+  Errors module defines StoreError for missing keys and invalid arguments
+  CLI module parses process argv and runs the matching command then prints results
+  Index module re-exports public API from store types and errors
+  CLI usage examples:
+    npx tsx external/kv/cli.ts set user:1 alice
+    npx tsx external/kv/cli.ts get user:1
+    npx tsx external/kv/cli.ts delete user:1
+    npx tsx external/kv/cli.ts list
+
+Target TypeScript only
+  No npm dependencies beyond Node built-ins
+  Use node fs and path only for persistence
+  Use process.argv for CLI parsing
+  Keep modules small and explicit
+  Do not invent extra features beyond get set delete list
+  Values are strings only
+  Keys are non-empty strings
+  Print plain text results to stdout
+  On errors print a short message to stderr and exit with code 1
+
+Write only these TypeScript files under external/kv
+  external/kv/types.ts
+  external/kv/errors.ts
+  external/kv/store.ts
+  external/kv/cli.ts
+  external/kv/index.ts
+  Do not write data.json yourself
+  No explanations
+  No markdown
+  No preamble
+  No postamble
+  No comments unless required for TypeScript
+
+Please implement this carefully. Walk me through the structure if useful, and show the code for each file. Thanks!

@@ -1,0 +1,28 @@
+{
+  "name": "ilang",
+  "displayName": "ILang",
+  "description": "Syntax highlighting for .ilang files",
+  "version": "0.1.0",
+  "publisher": "ilang",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "ilang",
+        "aliases": ["ILang", "ilang"],
+        "extensions": [".ilang"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ilang",
+        "scopeName": "source.ilang",
+        "path": "./syntaxes/ilang.tmLanguage.json"
+      }
+    ]
+  }
+}

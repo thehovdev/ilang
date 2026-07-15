@@ -1,0 +1,156 @@
+external/kv/types.ts
+export type KvRecord = {
+  key: string;
+  value: string;
+};
+
+export type StoreData = {
+  records: Record<string, string>;
+};
+
+export type CliCommand = "get" | "set" | "delete" | "list";
+
+external/kv/errors.ts
+export class StoreError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StoreError";
+  }
+}
+
+external/kv/store.ts
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { StoreError } from "./errors.js";
+import type { StoreData } from "./types.js";
+
+const DATA_FILE = join(dirname(fileURLToPath(import.meta.url)), "data.json");
+
+function emptyData(): StoreData {
+  return { records: {} };
+}
+
+function load(): StoreData {
+  if (!existsSync(DATA_FILE)) {
+    const dir = dirname(DATA_FILE);
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+    const data = emptyData();
+    save(data);
+    return data;
+  }
+  const raw = readFileSync(DATA_FILE, "utf8");
+  if (raw.trim().length === 0) {
+    return emptyData();
+  }
+  const parsed = JSON.parse(raw) as StoreData;
+  if (!parsed.records || typeof parsed.records !== "object") {
+    return emptyData();
+  }
+  return parsed;
+}
+
+function save(data: StoreData): void {
+  writeFileSync(DATA_FILE, JSON.stringify(data, null, 2) + "\n", "utf8");
+}
+
+function assertKey(key: string): void {
+  if (key.length === 0) {
+    throw new StoreError("Key must be non-empty");
+  }
+}
+
+export function get(key: string): string {
+  assertKey(key);
+  const data = load();
+  if (!(key in data.records)) {
+    throw new StoreError(`Missing key: ${key}`);
+  }
+  return data.records[key];
+}
+
+export function set(key: string, value: string): void {
+  assertKey(key);
+  const data = load();
+  data.records[key] = value;
+  save(data);
+}
+
+export function deleteKey(key: string): void {
+  assertKey(key);
+  const data = load();
+  if (!(key in data.records)) {
+    throw new StoreError(`Missing key: ${key}`);
+  }
+  delete data.records[key];
+  save(data);
+}
+
+export function list(): string[] {
+  const data = load();
+  return Object.keys(data.records).sort();
+}
+
+external/kv/cli.ts
+import { get, set, deleteKey, list } from "./store.js";
+import { StoreError } from "./errors.js";
+import type { CliCommand } from "./types.js";
+
+const COMMANDS: CliCommand[] = ["get", "set", "delete", "list"];
+
+function run(): void {
+  const [cmd, ...rest] = process.argv.slice(2);
+  if (!cmd || !COMMANDS.includes(cmd as CliCommand)) {
+    throw new StoreError("Invalid command");
+  }
+  let output = "";
+  switch (cmd as CliCommand) {
+    case "get": {
+      if (rest.length !== 1) {
+        throw new StoreError("get requires a key");
+      }
+      output = get(rest[0]);
+      break;
+    }
+    case "set": {
+      if (rest.length < 2) {
+        throw new StoreError("set requires a key and value");
+      }
+      const [key, ...valueParts] = rest;
+      set(key, valueParts.join(" "));
+      break;
+    }
+    case "delete": {
+      if (rest.length !== 1) {
+        throw new StoreError("delete requires a key");
+      }
+      deleteKey(rest[0]);
+      break;
+    }
+    case "list": {
+      if (rest.length !== 0) {
+        throw new StoreError("list takes no arguments");
+      }
+      output = list().join("\n");
+      break;
+    }
+  }
+  if (output.length > 0) {
+    process.stdout.write(output + "\n");
+  }
+}
+
+try {
+  run();
+} catch (err) {
+  const message = err instanceof StoreError ? err.message : "Error";
+  process.stderr.write(message + "\n");
+  process.exit(1);
+}
+
+external/kv/index.ts
+export type { KvRecord, StoreData, CliCommand } from "./types.js";
+export { StoreError } from "./errors.js";
+export { get, set, deleteKey, list } from "./store.js";

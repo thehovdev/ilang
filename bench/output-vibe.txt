@@ -1,0 +1,275 @@
+I'll build a small file-backed key-value store in TypeScript with a CLI on top. Keys and values are strings, persistence goes to a JSON file on disk, and the CLI exposes `get`, `set`, `delete`, and `list`.
+
+## Project structure
+
+Everything lives under `external/kv/`:
+
+```
+external/kv/
+├── types.ts    # Shared types (KvRecord, StoreData, CliCommand)
+├── errors.ts   # StoreError for missing keys / bad args
+├── store.ts    # Load/save JSON + get/set/delete/list
+├── cli.ts      # Entry point — parses argv, calls store, prints results
+├── index.ts    # Public API re-exports
+└── data.json   # Created automatically on first write (you don't commit this)
+```
+
+**Data flow:** `cli.ts` parses `process.argv` → calls functions in `store.ts` → `store.ts` reads/writes `data.json` via Node's `fs` and `path`. Errors bubble up as `StoreError` and the CLI prints them to stderr with exit code 1.
+
+---
+
+## `external/kv/types.ts`
+
+Core type definitions shared across modules.
+
+```typescript
+export interface KvRecord {
+  key: string;
+  value: string;
+}
+
+export interface StoreData {
+  records: Record<string, string>;
+}
+
+export type CliCommand = 'get' | 'set' | 'delete' | 'list';
+```
+
+---
+
+## `external/kv/errors.ts`
+
+A small error class so the CLI can distinguish store errors from unexpected failures.
+
+```typescript
+export class StoreError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'StoreError';
+  }
+}
+```
+
+---
+
+## `external/kv/store.ts`
+
+The heart of the project — loads/saves the JSON file and implements the four operations.
+
+```typescript
+import * as fs from 'fs';
+import * as path from 'path';
+import type { KvRecord, StoreData } from './types';
+import { StoreError } from './errors';
+
+const DEFAULT_DATA_FILE = path.join(__dirname, 'data.json');
+
+function assertNonEmptyKey(key: string): void {
+  if (typeof key !== 'string' || key.trim() === '') {
+    throw new StoreError('Key must be a non-empty string');
+  }
+}
+
+function assertStringValue(value: string): void {
+  if (typeof value !== 'string') {
+    throw new StoreError('Value must be a string');
+  }
+}
+
+function load(dataFile: string = DEFAULT_DATA_FILE): StoreData {
+  if (!fs.existsSync(dataFile)) {
+    return { records: {} };
+  }
+
+  const raw = fs.readFileSync(dataFile, 'utf-8');
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<StoreData>;
+    if (!parsed.records || typeof parsed.records !== 'object' || Array.isArray(parsed.records)) {
+      throw new StoreError('Invalid store file format');
+    }
+    return { records: parsed.records };
+  } catch (err) {
+    if (err instanceof StoreError) {
+      throw err;
+    }
+    throw new StoreError('Invalid store file format');
+  }
+}
+
+function save(data: StoreData, dataFile: string = DEFAULT_DATA_FILE): void {
+  const dir = path.dirname(dataFile);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  fs.writeFileSync(dataFile, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+}
+
+export function get(key: string, dataFile: string = DEFAULT_DATA_FILE): string {
+  assertNonEmptyKey(key);
+  const data = load(dataFile);
+
+  if (!(key in data.records)) {
+    throw new StoreError(`Key not found: ${key}`);
+  }
+
+  return data.records[key];
+}
+
+export function set(key: string, value: string, dataFile: string = DEFAULT_DATA_FILE): void {
+  assertNonEmptyKey(key);
+  assertStringValue(value);
+
+  const data = load(dataFile);
+  data.records[key] = value;
+  save(data, dataFile);
+}
+
+export function deleteKey(key: string, dataFile: string = DEFAULT_DATA_FILE): void {
+  assertNonEmptyKey(key);
+  const data = load(dataFile);
+
+  if (!(key in data.records)) {
+    throw new StoreError(`Key not found: ${key}`);
+  }
+
+  delete data.records[key];
+  save(data, dataFile);
+}
+
+export function list(dataFile: string = DEFAULT_DATA_FILE): KvRecord[] {
+  const data = load(dataFile);
+
+  return Object.entries(data.records)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => ({ key, value }));
+}
+```
+
+> Note: the function is named `deleteKey` because `delete` is a reserved word in JavaScript/TypeScript. The CLI still exposes the `delete` command to users.
+
+---
+
+## `external/kv/cli.ts`
+
+Parses `process.argv`, dispatches to the store, and prints plain-text output.
+
+```typescript
+import * as path from 'path';
+import type { CliCommand } from './types';
+import { StoreError } from './errors';
+import { get, set, deleteKey, list } from './store';
+
+const DATA_FILE = path.join(__dirname, 'data.json');
+
+function printUsage(): void {
+  console.error('Usage:');
+  console.error('  npx tsx external/kv/cli.ts set <key> <value>');
+  console.error('  npx tsx external/kv/cli.ts get <key>');
+  console.error('  npx tsx external/kv/cli.ts delete <key>');
+  console.error('  npx tsx external/kv/cli.ts list');
+}
+
+function fail(message: string): never {
+  console.error(message);
+  process.exit(1);
+}
+
+function main(): void {
+  const args = process.argv.slice(2);
+
+  if (args.length === 0) {
+    printUsage();
+    process.exit(1);
+  }
+
+  const command = args[0] as CliCommand;
+
+  try {
+    switch (command) {
+      case 'set': {
+        if (args.length !== 3) {
+          throw new StoreError('set requires a key and a value');
+        }
+        set(args[1], args[2], DATA_FILE);
+        break;
+      }
+
+      case 'get': {
+        if (args.length !== 2) {
+          throw new StoreError('get requires a key');
+        }
+        console.log(get(args[1], DATA_FILE));
+        break;
+      }
+
+      case 'delete': {
+        if (args.length !== 2) {
+          throw new StoreError('delete requires a key');
+        }
+        deleteKey(args[1], DATA_FILE);
+        break;
+      }
+
+      case 'list': {
+        if (args.length !== 1) {
+          throw new StoreError('list takes no additional arguments');
+        }
+        const records = list(DATA_FILE);
+        for (const record of records) {
+          console.log(`${record.key}=${record.value}`);
+        }
+        break;
+      }
+
+      default:
+        throw new StoreError(`Unknown command: ${command}`);
+    }
+  } catch (err) {
+    if (err instanceof StoreError) {
+      fail(err.message);
+    }
+    throw err;
+  }
+}
+
+main();
+```
+
+---
+
+## `external/kv/index.ts`
+
+Re-exports the public API for programmatic use.
+
+```typescript
+export type { KvRecord, StoreData, CliCommand } from './types';
+export { StoreError } from './errors';
+export { get, set, deleteKey, list } from './store';
+```
+
+---
+
+## Running it
+
+From the project root, use `tsx` to run the CLI directly (no build step needed):
+
+```bash
+# Store a value
+npx tsx external/kv/cli.ts set user:1 alice
+
+# Read it back
+npx tsx external/kv/cli.ts get user:1
+# → alice
+
+# List all keys
+npx tsx external/kv/cli.ts list
+# → user:1=alice
+
+# Remove a key
+npx tsx external/kv/cli.ts delete user:1
+```
+
+On success, `set` and `delete` produce no output. `get` prints the value; `list` prints `key=value` lines sorted by key. Errors go to stderr with exit code 1 — for example, `get` on a missing key prints `Key not found: user:1`.
+
+The `data.json` file is created automatically the first time you call `set`. You don't need to create it yourself.

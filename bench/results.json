@@ -1,0 +1,37 @@
+{
+  "input": {
+    "vibe": {
+      "chars": 2063,
+      "tokensApprox": 516
+    },
+    "ilang": {
+      "chars": 2355,
+      "tokensApprox": 589
+    }
+  },
+  "output": {
+    "vibe": {
+      "label": "vibe",
+      "chars": 7122,
+      "lines": 276,
+      "words": 927,
+      "tokensApprox": 1781,
+      "fenceBlocks": 7,
+      "proseishLines": 28
+    },
+    "ilang": {
+      "label": "ilang",
+      "chars": 3768,
+      "lines": 157,
+      "words": 475,
+      "tokensApprox": 942,
+      "fenceBlocks": 0,
+      "proseishLines": 1
+    }
+  },
+  "savings": {
+    "outputCharsPct": 47.1,
+    "outputTokensApprox": 839
+  },
+  "model": "composer-2.5-fast (two parallel subagents)"
+}

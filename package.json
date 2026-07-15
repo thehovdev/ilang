@@ -1,0 +1,22 @@
+{
+  "name": "ilang-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "ilang": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "ilang": "tsx internal/cli/index.ts",
+    "init": "tsx internal/cli/index.ts init",
+    "check": "tsx internal/cli/index.ts check",
+    "prompt": "tsx internal/cli/index.ts prompt",
+    "run": "tsx internal/cli/index.ts run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

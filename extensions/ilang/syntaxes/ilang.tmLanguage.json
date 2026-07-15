@@ -1,0 +1,72 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ILang",
+  "scopeName": "source.ilang",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#top-section" },
+    { "include": "#nested-section" },
+    { "include": "#braces" },
+    { "include": "#assignment" },
+    { "include": "#path" },
+    { "include": "#string" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.number-sign.ilang",
+      "match": "#.*$"
+    },
+    "top-section": {
+      "name": "meta.section.top.ilang",
+      "match": "^(lang|context|variables|goal|constraints|output|prompt)\\s*(:)\\s*$",
+      "captures": {
+        "1": { "name": "keyword.control.section.ilang" },
+        "2": { "name": "punctuation.separator.ilang" }
+      }
+    },
+    "nested-section": {
+      "name": "meta.section.nested.ilang",
+      "match": "^(\\s+)(rules|dict|body|lang|context|variables|goal|constraints|output)\\s*(:)\\s*(\\{)?\\s*$",
+      "captures": {
+        "2": { "name": "entity.name.section.ilang" },
+        "3": { "name": "punctuation.separator.ilang" },
+        "4": { "name": "punctuation.section.brace.begin.ilang" }
+      }
+    },
+    "braces": {
+      "patterns": [
+        {
+          "name": "punctuation.section.brace.begin.ilang",
+          "match": "\\{"
+        },
+        {
+          "name": "punctuation.section.brace.end.ilang",
+          "match": "\\}"
+        }
+      ]
+    },
+    "assignment": {
+      "match": "^(\\s*)([A-Za-z_][A-Za-z0-9_]*)\\s*(=)\\s*(.+)$",
+      "captures": {
+        "2": { "name": "variable.other.ilang" },
+        "3": { "name": "keyword.operator.assignment.ilang" },
+        "4": { "name": "string.unquoted.ilang" }
+      }
+    },
+    "path": {
+      "name": "string.unquoted.path.ilang",
+      "match": "\\bexternal/[A-Za-z0-9_./-]+"
+    },
+    "string": {
+      "name": "string.quoted.double.ilang",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.ilang",
+          "match": "\\\\."
+        }
+      ]
+    }
+  }
+}
