@@ -306,3 +306,19 @@ Token counts in those notes use a simple chars/4 proxy unless otherwise stated.
 ## 11. Versioning / status
 
 This is an early V2 MVP: compile-lite (parse → check → prompt). It does not invoke models or write `external/` for you. Focus remains on structured specs and cheaper, tighter model replies.
+
+---
+
+## 12. How to be a contributor
+
+Contributions are welcome: bug fixes, CLI/DX improvements, docs, editor support, and example `.ilang` specs.
+
+1. Open an issue or PR with a clear description.
+2. Prefer small, focused changes.
+3. Run `npm run check` before submitting.
+4. Update docs when behavior changes.
+
+Questions or ideas before coding? Reach out:
+
+- Email: **khalilov.afgan@proton.me**
+- Telegram: **[@thehovdev](https://t.me/thehovdev)**

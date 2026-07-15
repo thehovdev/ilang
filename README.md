@@ -181,6 +181,22 @@ Cursor/VS Code may suggest the local `extensions/ilang` extension. Install it if
 
 ---
 
+## How to be a contributor
+
+ILang is early and open to help. If you want to contribute:
+
+1. Open an issue describing the idea or bug (or start a PR for a small fix).
+2. Keep changes focused: CLI, `.ilang` format, docs, syntax highlighting, or examples.
+3. Match the existing style — small, clear TypeScript; no unnecessary deps.
+4. Before a PR: `npm run check` and make sure docs (`README.md` / `Documentation.md`) stay accurate if behavior changes.
+
+Not sure where to start, or want to discuss a bigger idea first? Reach out:
+
+- Email: **khalilov.afgan@proton.me**
+- Telegram: **[@thehovdev](https://t.me/thehovdev)**
+
+---
+
 ## TL;DR
 
 1. `npm install`
